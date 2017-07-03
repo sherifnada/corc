@@ -1,12 +1,12 @@
 /**
  * Copyright (C) 2015 Expedia Inc.
- *
+ * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
+ * <p>
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -26,8 +26,6 @@ import java.util.Map.Entry;
 import org.apache.hadoop.hive.common.type.HiveChar;
 import org.apache.hadoop.hive.common.type.HiveDecimal;
 import org.apache.hadoop.hive.common.type.HiveVarchar;
-import org.apache.hadoop.hive.ql.io.orc.OrcStruct;
-import org.apache.hadoop.hive.serde2.io.ByteWritable;
 import org.apache.hadoop.hive.serde2.io.DateWritable;
 import org.apache.hadoop.hive.serde2.io.DoubleWritable;
 import org.apache.hadoop.hive.serde2.io.HiveCharWritable;
@@ -38,27 +36,27 @@ import org.apache.hadoop.hive.serde2.io.TimestampWritable;
 import org.apache.hadoop.hive.serde2.objectinspector.ListObjectInspector;
 import org.apache.hadoop.hive.serde2.objectinspector.MapObjectInspector;
 import org.apache.hadoop.hive.serde2.objectinspector.ObjectInspector;
-import org.apache.hadoop.hive.serde2.objectinspector.PrimitiveObjectInspector;
-import org.apache.hadoop.hive.serde2.objectinspector.SettableStructObjectInspector;
-import org.apache.hadoop.hive.serde2.objectinspector.StructField;
 import org.apache.hadoop.hive.serde2.objectinspector.UnionObject;
 import org.apache.hadoop.hive.serde2.objectinspector.UnionObjectInspector;
+import org.apache.hadoop.io.BinaryComparable;
 import org.apache.hadoop.io.BooleanWritable;
+import org.apache.hadoop.io.ByteWritable;
 import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.io.FloatWritable;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
+import org.apache.hadoop.io.WritableComparable;
+import org.apache.orc.TypeDescription;
+import org.apache.orc.mapred.OrcStruct;
 
 public class DefaultConverterFactory implements ConverterFactory {
 
   private static final long serialVersionUID = 1L;
 
   @Override
-  public Converter newConverter(ObjectInspector inspector) {
-    switch (inspector.getCategory()) {
-    case PRIMITIVE:
-      switch (((PrimitiveObjectInspector) inspector).getPrimitiveCategory()) {
+  public Converter newConverter(TypeDescription typeDescription) {
+    switch (typeDescription.getCategory()) {
       case STRING:
         return new StringConverter();
       case BOOLEAN:
@@ -87,20 +85,16 @@ public class DefaultConverterFactory implements ConverterFactory {
         return new VarcharConverter();
       case DECIMAL:
         return new DecimalConverter();
+      case STRUCT:
+        return new StructConverter(this, typeDescription);
+      case LIST:
+        return new ListConverter(this, (ListObjectInspector)inspector);
+      case MAP:
+        return new MapConverter(this, (MapObjectInspector)inspector);
+      case UNION:
+        return new UnionConverter(this, (UnionObjectInspector)inspector);
       default:
-        throw new IllegalArgumentException(
-            "Unknown Primitive Category: " + ((PrimitiveObjectInspector) inspector).getPrimitiveCategory());
-      }
-    case STRUCT:
-      return new StructConverter(this, (SettableStructObjectInspector) inspector);
-    case LIST:
-      return new ListConverter(this, (ListObjectInspector) inspector);
-    case MAP:
-      return new MapConverter(this, (MapObjectInspector) inspector);
-    case UNION:
-      return new UnionConverter(this, (UnionObjectInspector) inspector);
-    default:
-      throw new IllegalArgumentException("Unknown Category: " + inspector.getCategory());
+        throw new IllegalArgumentException("Unknown Category: " + inspector.getCategory());
     }
   }
 
@@ -108,7 +102,7 @@ public class DefaultConverterFactory implements ConverterFactory {
 
     @Override
     protected Object toWritableObjectInternal(Object value) throws UnexpectedTypeException {
-      return new Text((String) value);
+      return new Text((String)value);
     }
 
     @Override
@@ -122,12 +116,12 @@ public class DefaultConverterFactory implements ConverterFactory {
 
     @Override
     protected Object toWritableObjectInternal(Object value) throws UnexpectedTypeException {
-      return new BooleanWritable((Boolean) value);
+      return new BooleanWritable((Boolean)value);
     }
 
     @Override
     protected Object toJavaObjectInternal(Object value) throws UnexpectedTypeException {
-      return ((BooleanWritable) value).get();
+      return ((BooleanWritable)value).get();
     }
 
   }
@@ -135,13 +129,15 @@ public class DefaultConverterFactory implements ConverterFactory {
   public static class ByteConverter extends BaseConverter {
 
     @Override
-    protected Object toWritableObjectInternal(Object value) throws UnexpectedTypeException {
-      return new ByteWritable((Byte) value);
+    protected WritableComparable<ByteWritable> toWritableObjectInternal(Object value) throws UnexpectedTypeException {
+      return new ByteWritable((byte)value);
+
     }
 
     @Override
     protected Object toJavaObjectInternal(Object value) throws UnexpectedTypeException {
-      return ((ByteWritable) value).get();
+      return
+      return ((ByteWritable)value).get();
     }
 
   }
@@ -150,12 +146,12 @@ public class DefaultConverterFactory implements ConverterFactory {
 
     @Override
     protected Object toWritableObjectInternal(Object value) throws UnexpectedTypeException {
-      return new ShortWritable((Short) value);
+      return new ShortWritable((Short)value);
     }
 
     @Override
     protected Object toJavaObjectInternal(Object value) throws UnexpectedTypeException {
-      return ((ShortWritable) value).get();
+      return ((ShortWritable)value).get();
     }
 
   }
@@ -164,12 +160,12 @@ public class DefaultConverterFactory implements ConverterFactory {
 
     @Override
     protected Object toWritableObjectInternal(Object value) throws UnexpectedTypeException {
-      return new IntWritable((Integer) value);
+      return new IntWritable((Integer)value);
     }
 
     @Override
     protected Object toJavaObjectInternal(Object value) throws UnexpectedTypeException {
-      return ((IntWritable) value).get();
+      return ((IntWritable)value).get();
     }
 
   }
@@ -178,12 +174,12 @@ public class DefaultConverterFactory implements ConverterFactory {
 
     @Override
     protected Object toWritableObjectInternal(Object value) throws UnexpectedTypeException {
-      return new LongWritable((Long) value);
+      return new LongWritable((Long)value);
     }
 
     @Override
     protected Object toJavaObjectInternal(Object value) throws UnexpectedTypeException {
-      return ((LongWritable) value).get();
+      return ((LongWritable)value).get();
     }
 
   }
@@ -192,12 +188,12 @@ public class DefaultConverterFactory implements ConverterFactory {
 
     @Override
     protected Object toWritableObjectInternal(Object value) throws UnexpectedTypeException {
-      return new FloatWritable((Float) value);
+      return new FloatWritable((Float)value);
     }
 
     @Override
     protected Object toJavaObjectInternal(Object value) throws UnexpectedTypeException {
-      return ((FloatWritable) value).get();
+      return ((FloatWritable)value).get();
     }
 
   }
@@ -206,12 +202,12 @@ public class DefaultConverterFactory implements ConverterFactory {
 
     @Override
     protected Object toWritableObjectInternal(Object value) throws UnexpectedTypeException {
-      return new DoubleWritable((Double) value);
+      return new DoubleWritable((Double)value);
     }
 
     @Override
     protected Object toJavaObjectInternal(Object value) throws UnexpectedTypeException {
-      return ((DoubleWritable) value).get();
+      return ((DoubleWritable)value).get();
     }
 
   }
@@ -220,12 +216,12 @@ public class DefaultConverterFactory implements ConverterFactory {
 
     @Override
     protected Object toWritableObjectInternal(Object value) throws UnexpectedTypeException {
-      return new TimestampWritable((Timestamp) value);
+      return new TimestampWritable((Timestamp)value);
     }
 
     @Override
     protected Object toJavaObjectInternal(Object value) throws UnexpectedTypeException {
-      return ((TimestampWritable) value).getTimestamp();
+      return ((TimestampWritable)value).getTimestamp();
     }
 
   }
@@ -233,13 +229,13 @@ public class DefaultConverterFactory implements ConverterFactory {
   public static class DateConverter extends BaseConverter {
 
     @Override
-    protected Object toWritableObjectInternal(Object value) throws UnexpectedTypeException {
-      return new DateWritable((Date) value);
+    protected WritableComparable<DateWritable> toWritableObjectInternal(Object value) throws UnexpectedTypeException {
+      return new DateWritable((Date)value);
     }
 
     @Override
-    protected Object toJavaObjectInternal(Object value) throws UnexpectedTypeException {
-      return ((DateWritable) value).get();
+    protected WritableComparable<DateWritable> toJavaObjectInternal(Object value) throws UnexpectedTypeException {
+      return ((DateWritable)value);
     }
 
   }
@@ -247,13 +243,13 @@ public class DefaultConverterFactory implements ConverterFactory {
   public static class BinaryConverter extends BaseConverter {
 
     @Override
-    protected Object toWritableObjectInternal(Object value) throws UnexpectedTypeException {
-      return new BytesWritable((byte[]) value);
+    protected WritableComparable<BinaryComparable> toWritableObjectInternal(Object value) throws UnexpectedTypeException {
+      return new BytesWritable((byte[])value);
     }
 
     @Override
-    protected Object toJavaObjectInternal(Object value) throws UnexpectedTypeException {
-      return ((BytesWritable) value).getBytes();
+    protected WritableComparable<BinaryComparable> toJavaObjectInternal(Object value) throws UnexpectedTypeException {
+      return ((BytesWritable)value).getBytes();
     }
 
   }
@@ -262,12 +258,12 @@ public class DefaultConverterFactory implements ConverterFactory {
 
     @Override
     protected Object toWritableObjectInternal(Object value) throws UnexpectedTypeException {
-      return new HiveCharWritable((HiveChar) value);
+      return new HiveCharWritable((HiveChar)value);
     }
 
     @Override
     protected Object toJavaObjectInternal(Object value) throws UnexpectedTypeException {
-      return ((HiveCharWritable) value).getHiveChar();
+      return ((HiveCharWritable)value).getHiveChar();
     }
 
   }
@@ -276,12 +272,12 @@ public class DefaultConverterFactory implements ConverterFactory {
 
     @Override
     protected Object toWritableObjectInternal(Object value) throws UnexpectedTypeException {
-      return new HiveVarcharWritable((HiveVarchar) value);
+      return new HiveVarcharWritable((HiveVarchar)value);
     }
 
     @Override
     protected Object toJavaObjectInternal(Object value) throws UnexpectedTypeException {
-      return ((HiveVarcharWritable) value).getHiveVarchar();
+      return ((HiveVarcharWritable)value).getHiveVarchar();
     }
 
   }
@@ -290,68 +286,61 @@ public class DefaultConverterFactory implements ConverterFactory {
 
     @Override
     protected Object toWritableObjectInternal(Object value) throws UnexpectedTypeException {
-      return new HiveDecimalWritable((HiveDecimal) value);
+      return new HiveDecimalWritable((HiveDecimal)value);
     }
 
     @Override
     protected Object toJavaObjectInternal(Object value) throws UnexpectedTypeException {
-      return ((HiveDecimalWritable) value).getHiveDecimal();
+      return ((HiveDecimalWritable)value).getHiveDecimal();
     }
 
   }
 
   public static class StructConverter extends BaseConverter {
 
-    private final SettableStructObjectInspector inspector;
+
     private final List<Converter> converters = new ArrayList<>();
+    private final TypeDescription typeDescription;
 
-    public StructConverter(ConverterFactory factory, SettableStructObjectInspector inspector) {
-      this.inspector = inspector;
-      for (StructField structField : inspector.getAllStructFieldRefs()) {
-        converters.add(factory.newConverter(structField.getFieldObjectInspector()));
+    public StructConverter(ConverterFactory factory, TypeDescription typeDescription) {
+      this.typeDescription = typeDescription;
+      for (TypeDescription fieldDescription : typeDescription.getChildren()) {
+        converters.add(factory.newConverter(fieldDescription));
       }
     }
 
     @Override
-    protected Object toWritableObjectInternal(Object value) throws UnexpectedTypeException {
+    protected WritableComparable<OrcStruct> toWritableObjectInternal(Object value) throws UnexpectedTypeException {
       @SuppressWarnings("unchecked")
-      List<Object> list = (List<Object>) value;
-      OrcStruct result = (OrcStruct) inspector.create();
-      result.setNumFields(list.size());
+      List<Object> list = (List<Object>)value;
+      OrcStruct result = new OrcStruct(typeDescription);
       int i = 0;
-      for (StructField field : inspector.getAllStructFieldRefs()) {
-        inspector.setStructFieldData(result, field, converters.get(i).toWritableObject(list.get(i)));
+      for (TypeDescription fieldTypeDescription : typeDescription.getChildren()) {
+        result.setFieldValue(i, converters.get(i).toWritableObject(list.get(i)));
         i++;
       }
+
       return result;
     }
 
     @Override
-    protected Object toJavaObjectInternal(Object value) throws UnexpectedTypeException {
-      OrcStruct struct = (OrcStruct) value;
-      List<Object> result = new ArrayList<>(struct.getNumFields());
-      int i = 0;
-      for (StructField field : inspector.getAllStructFieldRefs()) {
-        result.add(converters.get(i).toJavaObject(inspector.getStructFieldData(struct, field)));
-        i++;
-      }
-      return result;
+    protected WritableComparable<OrcStruct> toJavaObjectInternal(Object value) throws UnexpectedTypeException {
+      return (OrcStruct)value;
     }
-
   }
 
   public static class ListConverter extends BaseConverter {
 
     private final Converter converter;
 
-    public ListConverter(ConverterFactory factory, ListObjectInspector inspector) {
-      converter = factory.newConverter(inspector.getListElementObjectInspector());
+    public ListConverter(ConverterFactory factory, TypeDescription typeDescription) {
+      converter = factory.newConverter(typeDescription.getChildren().get(0));
     }
 
     @Override
     protected Object toWritableObjectInternal(Object value) throws UnexpectedTypeException {
       @SuppressWarnings("unchecked")
-      List<Object> list = (List<Object>) value;
+      List<Object> list = (List<Object>)value;
       List<Object> result = new ArrayList<>(list.size());
       for (Object item : list) {
         result.add(converter.toWritableObject(item));
@@ -362,7 +351,7 @@ public class DefaultConverterFactory implements ConverterFactory {
     @Override
     protected Object toJavaObjectInternal(Object value) throws UnexpectedTypeException {
       @SuppressWarnings("unchecked")
-      List<Object> list = (List<Object>) value;
+      List<Object> list = (List<Object>)value;
       List<Object> result = new ArrayList<>(list.size());
       for (Object item : list) {
         result.add(converter.toJavaObject(item));
@@ -385,7 +374,7 @@ public class DefaultConverterFactory implements ConverterFactory {
     @Override
     protected Object toWritableObjectInternal(Object value) throws UnexpectedTypeException {
       @SuppressWarnings("unchecked")
-      Map<Object, Object> map = (Map<Object, Object>) value;
+      Map<Object, Object> map = (Map<Object, Object>)value;
       Map<Object, Object> result = new HashMap<>(map.size());
       for (Entry<Object, Object> entry : map.entrySet()) {
         result.put(keyConverter.toWritableObject(entry.getKey()), valueConverter.toWritableObject(entry.getValue()));
@@ -396,7 +385,7 @@ public class DefaultConverterFactory implements ConverterFactory {
     @Override
     protected Object toJavaObjectInternal(Object value) throws UnexpectedTypeException {
       @SuppressWarnings("unchecked")
-      Map<Object, Object> map = (Map<Object, Object>) value;
+      Map<Object, Object> map = (Map<Object, Object>)value;
       Map<Object, Object> result = new HashMap<>(map.size());
       for (Entry<Object, Object> entry : map.entrySet()) {
         result.put(keyConverter.toJavaObject(entry.getKey()), valueConverter.toJavaObject(entry.getValue()));
@@ -432,7 +421,7 @@ public class DefaultConverterFactory implements ConverterFactory {
 
     @Override
     protected Object toJavaObjectInternal(Object value) throws UnexpectedTypeException {
-      UnionObject union = (UnionObject) value;
+      UnionObject union = (UnionObject)value;
       byte tag = union.getTag();
       Converter converter = converters.get(tag);
       return converter.toJavaObject(union.getObject());

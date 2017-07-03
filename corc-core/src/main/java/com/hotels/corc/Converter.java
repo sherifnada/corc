@@ -15,18 +15,20 @@
  */
 package com.hotels.corc;
 
-public interface Converter {
+import org.apache.hadoop.io.WritableComparable;
+
+public interface Converter<T> {
 
   /**
    * Converts the provided Java value to the equivalent {@link Writable} type. An {@link UnexpectedTypeException} will
    * be thrown if the provided value is not of the expected type.
    */
-  Object toWritableObject(Object value) throws UnexpectedTypeException;
+  WritableComparable<T> toWritableObject(Object value) throws UnexpectedTypeException;
 
   /**
    * Converts the provided {@link Writable} value to the equivalent Java type. An {@link UnexpectedTypeException} will
    * be thrown if the provided value is not of the expected type.
    */
-  Object toJavaObject(Object value) throws UnexpectedTypeException;
+  WritableComparable<T> toJavaObject(Object value) throws UnexpectedTypeException;
 
 }

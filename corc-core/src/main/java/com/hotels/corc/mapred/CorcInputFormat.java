@@ -22,12 +22,12 @@ import java.util.List;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.hive.ql.io.orc.OrcFile;
-import org.apache.hadoop.hive.ql.io.orc.OrcInputFormat;
-import org.apache.hadoop.hive.ql.io.orc.OrcRecordUpdater;
-import org.apache.hadoop.hive.ql.io.orc.OrcSplit;
-import org.apache.hadoop.hive.ql.io.orc.OrcStruct;
-import org.apache.hadoop.hive.ql.io.orc.Reader;
+import org.apache.orc.OrcFile;
+import org.apache.orc.mapred.OrcInputFormat;
+import org.apache.orc.mapred.OrcRecordUpdater;
+import org.apache.orc.mapred.OrcSplit;
+import org.apache.orc.mapred.OrcStruct;
+import org.apache.orc.Reader;
 import org.apache.hadoop.hive.ql.io.sarg.SearchArgument;
 import org.apache.hadoop.hive.ql.io.sarg.SearchArgumentFactory;
 import org.apache.hadoop.hive.serde2.ColumnProjectionUtils;
@@ -268,7 +268,7 @@ public class CorcInputFormat implements InputFormat<NullWritable, Corc> {
   }
 
   private boolean isAtomic(Reader orcReader) {
-    // Use org.apache.hadoop.hive.ql.io.orc.OrcInputFormat.isOriginal(Reader) from hive-exec:1.1.0
+    // Use org.apache.orc.OrcInputFormat.isOriginal(Reader) from hive-exec:1.1.0
     boolean atomic = orcReader.hasMetadataValue(OrcRecordUpdater.ACID_KEY_INDEX_NAME);
     LOG.debug("Atomic ORCFile: {}", atomic);
     return atomic;

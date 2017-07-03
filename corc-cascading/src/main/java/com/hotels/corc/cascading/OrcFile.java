@@ -1,12 +1,12 @@
 /**
  * Copyright (C) 2015 Expedia Inc.
- *
+ * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
+ * <p>
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -20,9 +20,13 @@ import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.hotels.corc.ConverterFactory;
+import com.hotels.corc.Corc;
+import com.hotels.corc.mapred.CorcInputFormat;
+import com.hotels.corc.mapred.CorcOutputFormat;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hive.ql.io.RecordIdentifier;
-import org.apache.hadoop.hive.ql.io.orc.OrcStruct;
+import org.apache.
 import org.apache.hadoop.hive.ql.io.sarg.SearchArgument;
 import org.apache.hadoop.hive.ql.metadata.VirtualColumn;
 import org.apache.hadoop.hive.serde2.objectinspector.SettableStructObjectInspector;
@@ -45,11 +49,6 @@ import cascading.tap.Tap;
 import cascading.tuple.Fields;
 import cascading.tuple.Tuple;
 import cascading.tuple.TupleEntry;
-
-import com.hotels.corc.ConverterFactory;
-import com.hotels.corc.Corc;
-import com.hotels.corc.mapred.CorcInputFormat;
-import com.hotels.corc.mapred.CorcOutputFormat;
 
 /**
  * OrcFile provides direct support for the <a
@@ -102,7 +101,7 @@ public class OrcFile extends Scheme<Configuration, RecordReader, OutputCollector
 
   /** Source constructor - see {@link SourceBuilder} for example usage. */
   public OrcFile(StructTypeInfo typeInfo, SearchArgument searchArgument, Fields fields, StructTypeInfo schemaTypeInfo,
-      ConverterFactory converterFactory) {
+                 ConverterFactory converterFactory) {
     this(typeInfo, searchArgument, fields, schemaTypeInfo, converterFactory, SchemeType.SOURCE);
   }
 
@@ -112,11 +111,12 @@ public class OrcFile extends Scheme<Configuration, RecordReader, OutputCollector
   }
 
   private OrcFile(StructTypeInfo typeInfo, SearchArgument searchArgument, Fields fields, StructTypeInfo schemaTypeInfo,
-      ConverterFactory converterFactory, SchemeType type) {
+                  ConverterFactory converterFactory, SchemeType type) {
     super(fields, fields);
     validateNamesUnique(typeInfo.getAllStructFieldNames());
     this.typeInfo = typeInfo;
     this.schemaTypeInfo = schemaTypeInfo;
+
     searchArgumentKryo = searchArgument == null ? null : searchArgument.toKryo();
     this.converterFactory = converterFactory;
     this.type = type;
@@ -143,7 +143,7 @@ public class OrcFile extends Scheme<Configuration, RecordReader, OutputCollector
    */
   @Override
   public void sourceConfInit(FlowProcess<? extends Configuration> flowProcess,
-      Tap<Configuration, RecordReader, OutputCollector> tap, Configuration conf) {
+                             Tap<Configuration, RecordReader, OutputCollector> tap, Configuration conf) {
     conf.setBoolean("mapred.mapper.new-api", false);
     conf.setClass("mapred.input.format.class", CorcInputFormat.class, InputFormat.class);
     // ORC cannot be combined.
@@ -160,7 +160,7 @@ public class OrcFile extends Scheme<Configuration, RecordReader, OutputCollector
   @Override
   public void sourcePrepare(FlowProcess<? extends Configuration> flowProcess, SourceCall<Corc, RecordReader> sourceCall)
       throws IOException {
-    sourceCall.setContext((Corc) sourceCall.getInput().createValue());
+    sourceCall.setContext((Corc)sourceCall.getInput().createValue());
   }
 
   /**
@@ -193,7 +193,7 @@ public class OrcFile extends Scheme<Configuration, RecordReader, OutputCollector
    */
   @Override
   public void sinkConfInit(FlowProcess<? extends Configuration> flowProcess,
-      Tap<Configuration, RecordReader, OutputCollector> tap, Configuration conf) {
+                           Tap<Configuration, RecordReader, OutputCollector> tap, Configuration conf) {
     conf.setBoolean("mapred.mapper.new-api", false);
     conf.setClass("mapred.output.format.class", CorcOutputFormat.class, OutputFormat.class);
     conf.setClass("mapreduce.job.output.key.class", NullWritable.class, Writable.class);
@@ -316,7 +316,7 @@ public class OrcFile extends Scheme<Configuration, RecordReader, OutputCollector
      */
     public SourceBuilder columns(String typeInfoString) {
       checkExisting(columnTypeInfo, "columns");
-      columnTypeInfo = (StructTypeInfo) TypeInfoUtils.getTypeInfoFromTypeString(typeInfoString);
+      columnTypeInfo = (StructTypeInfo)TypeInfoUtils.getTypeInfoFromTypeString(typeInfoString);
       return this;
     }
 
@@ -387,7 +387,7 @@ public class OrcFile extends Scheme<Configuration, RecordReader, OutputCollector
      */
     public SourceBuilder schema(String typeInfoString) {
       checkExistingSchema();
-      schemaTypeInfo = (StructTypeInfo) TypeInfoUtils.getTypeInfoFromTypeString(typeInfoString);
+      schemaTypeInfo = (StructTypeInfo)TypeInfoUtils.getTypeInfoFromTypeString(typeInfoString);
       return this;
     }
 
@@ -530,7 +530,7 @@ public class OrcFile extends Scheme<Configuration, RecordReader, OutputCollector
      */
     public SinkBuilder schema(String typeInfoString) {
       checkForExistingSchema();
-      schemaTypeInfo = (StructTypeInfo) TypeInfoUtils.getTypeInfoFromTypeString(typeInfoString);
+      schemaTypeInfo = (StructTypeInfo)TypeInfoUtils.getTypeInfoFromTypeString(typeInfoString);
       return this;
     }
 

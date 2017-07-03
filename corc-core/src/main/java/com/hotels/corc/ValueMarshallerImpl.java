@@ -1,12 +1,12 @@
 /**
  * Copyright (C) 2015 Expedia Inc.
- *
+ * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
+ * <p>
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -15,45 +15,42 @@
  */
 package com.hotels.corc;
 
-import org.apache.hadoop.hive.ql.io.orc.OrcStruct;
-import org.apache.hadoop.hive.serde2.objectinspector.SettableStructObjectInspector;
-import org.apache.hadoop.hive.serde2.objectinspector.StructField;
+import org.apache.hadoop.io.WritableComparable;
+import org.apache.orc.mapred.OrcStruct;
 
-class ValueMarshallerImpl implements ValueMarshaller {
+class ValueMarshallerImpl<T> implements ValueMarshaller {
 
-  private final SettableStructObjectInspector inspector;
-  private final StructField structField;
-  private final Converter converter;
+  private final String fieldName;
+  private final Converter<T> converter;
 
-  ValueMarshallerImpl(SettableStructObjectInspector inspector, StructField structField, Converter converter) {
-    this.inspector = inspector;
-    this.structField = structField;
+  ValueMarshallerImpl(String fieldName, Converter<T> converter) {
+    this.fieldName = fieldName;
     this.converter = converter;
   }
 
   @Override
   public Object getJavaObject(OrcStruct struct) throws UnexpectedTypeException {
-    Object writable = inspector.getStructFieldData(struct, structField);
+    Object writable = struct.getFieldValue(fieldName);
     try {
       return converter.toJavaObject(writable);
     } catch (UnexpectedTypeException e) {
-      throw new UnexpectedTypeException(writable, structField.getFieldName(), e);
+      throw new UnexpectedTypeException(writable, fieldName, e);
     }
   }
 
   @Override
   public Object getWritableObject(OrcStruct struct) {
-    return inspector.getStructFieldData(struct, structField);
+    return struct.getFieldValue(fieldName);
   }
 
   @Override
   public void setWritableObject(OrcStruct struct, Object javaObject) throws UnexpectedTypeException {
-    Object writable;
+    WritableComparable<T> writable;
     try {
       writable = converter.toWritableObject(javaObject);
     } catch (UnexpectedTypeException e) {
-      throw new UnexpectedTypeException(javaObject, structField.getFieldName(), e);
+      throw new UnexpectedTypeException(javaObject, fieldName, e);
     }
-    inspector.setStructFieldData(struct, structField, writable);
+    struct.setFieldValue(fieldName, writable);
   }
 }

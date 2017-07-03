@@ -1,12 +1,12 @@
 /**
  * Copyright (C) 2015 Expedia Inc.
- *
+ * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
+ * <p>
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -23,11 +23,11 @@ import java.util.Map;
 
 import org.apache.hadoop.hive.ql.io.RecordIdentifier;
 import org.apache.hadoop.hive.ql.io.orc.OrcSerde;
-import org.apache.hadoop.hive.ql.io.orc.OrcStruct;
 import org.apache.hadoop.hive.serde2.objectinspector.SettableStructObjectInspector;
 import org.apache.hadoop.hive.serde2.objectinspector.StructField;
-import org.apache.hadoop.hive.serde2.typeinfo.StructTypeInfo;
 import org.apache.hadoop.io.Writable;
+import org.apache.orc.TypeDescription;
+import org.apache.orc.mapred.OrcStruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,24 +44,37 @@ public class Corc implements Writable {
   private final ConverterFactory factory;
   private final Map<String, ValueMarshaller> cache = new HashMap<>();
   private final RecordIdentifier recordIdentifier;
+  private TypeDescription typeDescription;
 
-  public Corc(StructTypeInfo typeInfo, ConverterFactory factory) {
-    LOG.debug("TypeInfo: {}", typeInfo);
-    inspector = (SettableStructObjectInspector) OrcStruct.createObjectInspector(typeInfo);
-    struct = (OrcStruct) inspector.create();
+
+  /*
+  why do we want typeInfo?
+    - create inspector. used to:
+      - create placeholder struct
+      - create a value marshaller for a given field. To create a marshaller, we get the appropriate OrcStruct <-> Java
+      converter, get the value of that field, and create a valueMarshaller(inspector, fieldValue, converter)
+
+    - DefaultConverterFactory -- all these converters will need to start using TypeDescription instead of TypeInfo
+   */
+  public Corc(TypeDescription typeDescription, ConverterFactory factory) {
+    LOG.debug("TypeInfo: {}", typeDescription);
+    this.struct = new OrcStruct(typeDescription);
     this.factory = factory;
-    recordIdentifier = new RecordIdentifier();
+    this.recordIdentifier = new RecordIdentifier();
   }
 
   private ValueMarshaller getValueMarshaller(String fieldName) {
     ValueMarshaller valueMarshaller = cache.get(fieldName);
+
     if (valueMarshaller == null) {
-      StructField structField = inspector.getStructFieldRef(fieldName.toLowerCase());
-      if (structField == null) {
+      Writable writable = struct.getFieldValue(fieldName);
+      TypeDescription fieldTypeDescription = getTypeDescriptionForFieldWithName(typeDescription, fieldName);
+      if (writable == null) {
         valueMarshaller = ValueMarshaller.NULL;
       } else {
-        Converter converter = factory.newConverter(structField.getFieldObjectInspector());
-        valueMarshaller = new ValueMarshallerImpl(inspector, structField, converter);
+        Converter converter = factory.newConverter(fieldTypeDescription);
+
+        valueMarshaller = new ValueMarshallerImpl(fieldName, converter);
       }
       cache.put(fieldName, valueMarshaller);
     }
@@ -121,6 +134,7 @@ public class Corc implements Writable {
   }
 
   public Object serialize() {
+    // Corc is writable, which should be all we need. So think we can just return this object?
     return serde.serialize(struct, inspector);
   }
 
@@ -134,4 +148,11 @@ public class Corc implements Writable {
     throw new UnsupportedOperationException(Corc.class.getName() + " cannot be used for reading.");
   }
 
+  private TypeDescription getTypeDescriptionForFieldWithName(TypeDescription description, String fieldName) {
+    for (int i = 0; i < description.getChildren().size(); i++) {
+      if (description.getFieldNames().get(i).equals(fieldName)) {
+        return description.getChildren().get(i);
+      }
+    }
+  }
 }

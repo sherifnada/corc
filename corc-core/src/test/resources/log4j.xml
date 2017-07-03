@@ -26,7 +26,7 @@
   <category name="org.apache.hadoop.mapred">
     <priority value="INFO" />
   </category>
-  <category name="org.apache.hadoop.hive.ql.io.orc">
+  <category name="org.apache.orc">
     <priority value="DEBUG" />
   </category>
   <category name="com.expedia">

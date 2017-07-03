@@ -47,7 +47,7 @@ public class CorcRecordWriterTest {
     Corc value = mock(Corc.class);
     Object serialized = mock(Object.class);
 
-    when(value.serialize()).thenReturn(serialized);
+      when(value.serialize()).thenReturn(serialized);
 
     corcRecordWriter.write(key, value);
 
