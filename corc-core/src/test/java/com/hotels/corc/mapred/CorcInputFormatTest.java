@@ -36,7 +36,6 @@ import org.apache.hadoop.mapred.InputSplit;
 import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.RecordReader;
 import org.apache.hadoop.mapred.Reporter;
-import org.apache.orc.TypeDescription;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -74,8 +73,8 @@ public class CorcInputFormatTest {
     path = new Path(file.getCanonicalPath());
 
     try (OrcWriter writer = new OrcWriter.Builder(conf, path)
-        .addField("a", TypeDescription.createString())
-        .addField("b", TypeDescription.createString())
+        .addField("a", TypeInfoFactory.stringTypeInfo)
+        .addField("b", TypeInfoFactory.stringTypeInfo)
         .build()) {
       writer.addRow("A1", "B1");
     }

@@ -46,7 +46,6 @@ import org.apache.hadoop.hive.serde2.typeinfo.StructTypeInfo;
 import org.apache.hadoop.hive.serde2.typeinfo.TypeInfo;
 import org.apache.hadoop.hive.serde2.typeinfo.TypeInfoFactory;
 import org.apache.hadoop.mapred.JobConf;
-import org.apache.orc.TypeDescription;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -144,9 +143,9 @@ public class OrcFileTest {
 
   @Test
   public void readString() throws IOException {
-    TypeDescription typeDescription = TypeDescription.createString();
+    TypeInfo typeInfo = TypeInfoFactory.stringTypeInfo;
 
-    try (OrcWriter writer = getOrcWriter(typeDescription)) {
+    try (OrcWriter writer = getOrcWriter(typeInfo)) {
       writer.addRow("hello");
       writer.addRow((Object) null);
     }

@@ -29,14 +29,12 @@ import java.io.IOException;
 
 import org.apache.hadoop.hive.ql.io.AcidInputFormat.AcidRecordReader;
 import org.apache.hadoop.hive.ql.io.RecordIdentifier;
-import org.apache.orc.TypeDescription;
-import org.apache.orc.mapred.OrcStruct;
+import org.apache.hadoop.hive.ql.io.orc.OrcStruct;
 import org.apache.hadoop.hive.serde2.objectinspector.SettableStructObjectInspector;
 import org.apache.hadoop.hive.serde2.typeinfo.StructTypeInfo;
 import org.apache.hadoop.hive.serde2.typeinfo.TypeInfoUtils;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapred.RecordReader;
-import org.apache.tools.ant.taskdefs.condition.Or;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -50,16 +48,9 @@ import com.hotels.corc.Filter;
 public class CorcRecordReaderTest {
 
   private final StructTypeInfo typeInfo = (StructTypeInfo) TypeInfoUtils.getTypeInfoFromTypeString("struct<a:string>");
-  private final TypeDescription typeDescription = TypeDescription.createString();
-
 
   @Mock
   private ConverterFactory factory;
-
-  @Test
-  public void test(){
-
-  }
 
   @Test
   public void readerCreateKey() {
@@ -81,7 +72,7 @@ public class CorcRecordReaderTest {
     verify(recordReader, never()).createValue();
 
     assertThat(corc.getInspector().getTypeName(), is("struct<a:string>"));
-    new OrcStruct(TypeDescription.createString());
+
     Object create = ((SettableStructObjectInspector) OrcStruct.createObjectInspector(typeInfo)).create();
     assertThat(corc.getOrcStruct(), is(create));
   }

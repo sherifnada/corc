@@ -27,7 +27,7 @@ import static org.mockito.Mockito.when;
 import java.io.IOException;
 
 import org.apache.hadoop.hive.ql.io.RecordIdentifier;
-import org.apache.orc.mapred.OrcStruct;
+import org.apache.hadoop.hive.ql.io.orc.OrcStruct;
 import org.apache.hadoop.hive.serde2.objectinspector.ObjectInspector;
 import org.apache.hadoop.hive.serde2.objectinspector.SettableStructObjectInspector;
 import org.apache.hadoop.hive.serde2.objectinspector.StructField;

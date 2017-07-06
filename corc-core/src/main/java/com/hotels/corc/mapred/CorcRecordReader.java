@@ -18,7 +18,7 @@ package com.hotels.corc.mapred;
 import java.io.IOException;
 
 import org.apache.hadoop.hive.ql.io.AcidInputFormat.AcidRecordReader;
-import org.apache.orc.mapred.OrcStruct;
+import org.apache.hadoop.hive.ql.io.orc.OrcStruct;
 import org.apache.hadoop.hive.serde2.typeinfo.StructTypeInfo;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapred.RecordReader;
@@ -38,9 +38,8 @@ class CorcRecordReader implements RecordReader<NullWritable, Corc> {
   private final AcidRecordReader<NullWritable, OrcStruct> transactionalReader;
   private final boolean transactional;
 
-   CorcRecordReader(StructTypeInfo typeInfo, RecordReader<NullWritable, OrcStruct> reader, ConverterFactory factory,
+  CorcRecordReader(StructTypeInfo typeInfo, RecordReader<NullWritable, OrcStruct> reader, ConverterFactory factory,
       Filter filter) {
-
     this.typeInfo = typeInfo;
     this.reader = reader;
     this.factory = factory;

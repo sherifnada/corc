@@ -23,11 +23,10 @@ import java.util.List;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.hive.ql.exec.vector.VectorizedRowBatch;
-import org.apache.orc.OrcFile;
-import org.apache.orc.OrcFile.ReaderOptions;
-import org.apache.orc.Reader;
-import org.apache.orc.RecordReader;
+import org.apache.hadoop.hive.ql.io.orc.OrcFile;
+import org.apache.hadoop.hive.ql.io.orc.OrcFile.ReaderOptions;
+import org.apache.hadoop.hive.ql.io.orc.Reader;
+import org.apache.hadoop.hive.ql.io.orc.RecordReader;
 import org.apache.hadoop.hive.serde2.objectinspector.ObjectInspectorUtils;
 import org.apache.hadoop.hive.serde2.typeinfo.TypeInfoFactory;
 import org.junit.Rule;
@@ -52,10 +51,8 @@ public class OrcWriterTest {
     ReaderOptions options = OrcFile.readerOptions(conf);
     Reader reader = OrcFile.createReader(path, options);
     RecordReader rows = reader.rows();
-//rows.
-//    reader.rows().@SuppressWarnings("unchecked")
-    VectorizedRowBatch rb = new VectorizedRowBatch(reader.getSchema().getFieldNames().size());
 
+    @SuppressWarnings("unchecked")
     List<Object> next = (List<Object>) ObjectInspectorUtils.copyToStandardJavaObject(rows.next(null),
         reader.getObjectInspector());
     assertThat(next.size(), is(1));

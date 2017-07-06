@@ -19,7 +19,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
-import org.apache.orc.mapred.OrcStruct;
+import org.apache.hadoop.hive.ql.io.orc.OrcStruct;
 import org.apache.hadoop.hive.serde2.objectinspector.UnionObject;
 import org.apache.hadoop.hive.serde2.typeinfo.TypeInfoUtils;
 
@@ -37,7 +37,7 @@ final class OrcUnionFactory {
   static {
     try {
       Class<? extends UnionObject> orcUnionClass = Class
-          .forName("org.apache.orc.OrcUnion")
+          .forName("org.apache.hadoop.hive.ql.io.orc.OrcUnion")
           .asSubclass(UnionObject.class);
       CONSTRUCTOR = orcUnionClass.getDeclaredConstructor();
       CONSTRUCTOR.setAccessible(true);

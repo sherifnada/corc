@@ -17,8 +17,7 @@ package com.hotels.corc;
 
 import java.io.Serializable;
 
-import org.apache.orc.TypeDescription;
-import org.apache.orc.mapred.OrcStruct;
+import org.apache.hadoop.hive.ql.io.orc.OrcStruct;
 import org.apache.hadoop.hive.serde2.objectinspector.ObjectInspector;
 
 /**
@@ -27,6 +26,6 @@ import org.apache.hadoop.hive.serde2.objectinspector.ObjectInspector;
  */
 public interface ConverterFactory extends Serializable {
 
-  Converter newConverter(TypeDescription typeDescription);
+  Converter newConverter(ObjectInspector inspector);
 
 }

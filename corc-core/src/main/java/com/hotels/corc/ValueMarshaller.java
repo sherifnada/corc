@@ -15,7 +15,7 @@
  */
 package com.hotels.corc;
 
-import org.apache.orc.mapred.OrcStruct;
+import org.apache.hadoop.hive.ql.io.orc.OrcStruct;
 
 interface ValueMarshaller {
 
